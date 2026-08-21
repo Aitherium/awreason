@@ -1,0 +1,210 @@
+# awreason
+
+**One reasoning interface over whichever backend you configured.**
+
+```bash
+pip install awreason
+```
+
+```python
+from awreason import ReasoningClient
+
+r = ReasoningClient("https://reason.example.com", token="...")
+answer = r.reason("Why is the sky blue?", depth="deep")
+print(answer)
+```
+
+```bash
+awreason ask "why is the sky blue?" --depth deep
+awreason health
+awreason stats
+awreason --self-test
+```
+
+The service origin comes from `--url` or `AWREASON_URL`, the token from `--token`
+or `AWREASON_TOKEN`. Neither is guessed — a reasoning client that quietly falls back
+to some default endpoint is sending your questions somewhere you did not choose.
+
+---
+
+## What this is, and what it is not
+
+It is a **client**. The reasoning engine, tool registry, and model selection stay
+in the service; this is the wire contract, packaged so anything can speak it.
+
+That split is deliberate. The alternative was lifting a large service with many
+private imports into a package, which produces something that `ModuleNotFoundError`s
+on your machine while reading as authoritative. A broken package is worse than no
+package.
+
+| route | what it does |
+|---|---|
+| `POST /reason` | reason about a question |
+| `POST /sessions` | start a reasoning session |
+| `GET /sessions` | list sessions |
+| `GET /sessions/{id}` | get one session |
+| `GET /sessions/{id}/tree` | get the reasoning tree |
+| `POST /thoughts` | add a reasoning step |
+| `GET /thoughts/recent` | recent reasoning thoughts |
+| `GET /stats` | counters |
+| `GET /health` | service health |
+| `GET /sase/capabilities` | what SASE phases are available |
+| `GET /gate/stats` | reasoning gate statistics |
+
+---
+
+## The problem this package solves
+
+You ask a question. The backend thinks deeply, traces through multiple reasoning phases,
+explores tool calls and their results, builds up a chain-of-thought — and returns you one
+paragraph.
+
+That paragraph could be correct. It could be wrong. It could be incoherent. And you have
+no way to tell which without acting on it. The reasoning is in the backend's logs, not
+in your hands.
+
+**awreason opens it up.** You get the session, the phases, the thoughts, the tool calls
+that led to the answer. You can read the chain. You can say "no, that's wrong" with
+evidence, not intuition. And you can learn why a correct answer was correct.
+
+```python
+from awreason import ReasoningClient
+
+r = ReasoningClient()
+
+# Simple reasoning
+answer = r.reason("complex problem")
+
+# With full session introspection
+async with r.session("MyAgent", "Why did this fail?") as sess:
+    await sess.think("Let me analyze the logs...")
+    logs = await sess.tool_call("fetch_logs", {"service": "api"})
+    await sess.analyze(f"The logs show: {logs}")
+    await sess.synthesize("The root cause is...")
+    await sess.conclude("The failure was caused by...")
+
+# Browse the reasoning tree
+tree = r.get_session_tree(sess.id)
+for thought in tree.thoughts:
+    print(f"{thought.phase}: {thought.content}")
+```
+
+---
+
+## Two things it refuses to do
+
+**Return `None` on failure.** A reasoning failure and a reasoning that found no
+conclusion are different facts. If the service cannot answer, `ReasoningError` is
+raised. Returned as None, an outage would be indistinguishable from an inconclusive
+result — and nobody investigates an inconclusive result.
+
+**Send an empty `Authorization` header.** No token means no header at all. An empty
+Bearer is rejected differently from an absent one, and the difference sends you
+debugging the auth server instead of your config.
+
+---
+
+## Depth levels
+
+How deep to reason about a question:
+
+| depth | what it does |
+|---|---|
+| `skip` | Don't reason, just answer immediately |
+| `shallow` | Quick one-pass reasoning |
+| `gate` | Criticality-based gating (default) |
+| `deep` | Full multi-phase deliberation |
+| `critical` | Maximum depth for critical questions |
+
+---
+
+## SASE phases
+
+Reasoning follows the SASE methodology:
+
+- **S**ituation: Assess the current state, gather context
+- **A**nalysis: Break down the problem, identify patterns
+- **S**ynthesis: Combine insights, form hypotheses
+- **E**xecution: Take action, validate results
+- **C**omplete: All phases done
+
+Each phase is a place to put a check. The chain is inspectable.
+
+---
+
+## `--self-test`
+
+Every install can prove the client still holds its contract, with no service and
+no network:
+
+```console
+$ awreason --self-test
+  PASS  base URL is normalized, defaults are sensible
+  PASS  token is optional, depth enum is correct
+SELF-TEST: awreason ok
+```
+
+---
+
+<!-- aither-ecosystem:start GENERATED from the ecosystem registry. Edits here are overwritten; change the registry instead. -->
+
+## The aw family
+
+Standalone tools that share one idea: **replace something you would otherwise have to _trust_ with something you can _check_.**
+
+Each installs on its own, works offline, and needs no account.
+
+| | instead of trusting | you check |
+|---|---|---|
+| [awdk](https://github.com/Aitherium/awdk) | a framework's idea of how your agents should run | one loop you can read, pointed at a backend you already pay for |
+| [awskills](https://github.com/Aitherium/awskills) | that an agent knows your procedure | the procedure written down, versioned, and loadable by any agent |
+| [awm](https://github.com/Aitherium/awm) | that memory stayed in its lane | tenant:user:project scopes, so a write cannot cross a boundary |
+| [awnode](https://github.com/Aitherium/awnode) | a vendor's cloud with every prompt | a local gateway routing to backends you chose |
+| [awgraph](https://github.com/Aitherium/awgraph) | that grep found everything | an AST + tree-sitter call graph an agent can traverse |
+| [awgit](https://github.com/Aitherium/awgit) | that no one else is editing this file | a lease, refused at commit time if you do not hold it |
+| [awseal](https://github.com/Aitherium/awseal) | that the artifact came from who you think | an Ed25519 seal — the key that verifies is not the key that forges |
+| [awshare](https://github.com/Aitherium/awshare) | that the download is intact | content-addressed bundles, verified on fetch |
+| [awnest](https://github.com/Aitherium/awnest) | that there is a person on the other end | a verdict with evidence, where "we could not tell" is not "yes" |
+| [awnboard](https://github.com/Aitherium/awnboard) | a share link anyone who sees it can use | an invitation addressed to one person, for one gate, revocable |
+| [awnix](https://github.com/Aitherium/awnix) | that the box is what you left it as | an immutable image you built, with atomic rollback |
+| [awrecover](https://github.com/Aitherium/awrecover) | that the restore worked | a restore that fully lands or does not land at all |
+| [awrelay](https://github.com/Aitherium/awrelay) | a SaaS in the middle of your agents | findings, alerts and coordination over your own transport |
+| [awmail](https://github.com/Aitherium/awmail) | a mailbox somebody else can read | mail your agents send and receive over your own server |
+| [awfind](https://github.com/Aitherium/awfind) | one vendor's idea of the web | results from whichever providers you configured |
+| [awbrowse](https://github.com/Aitherium/awbrowse) | that the page said what you were told | the render, the DOM and the requests it made |
+| **awreason** _(you are here)_ | one backend's idea of reasoning | sessions, phases, thoughts, and the chain that led to the answer |
+| [aitherkvcache](https://github.com/Aitherium/aitherkvcache) | a vendor's quantisation defaults | sub-byte KV cache kernels you can benchmark yourself |
+| [AitherZero](https://github.com/Aitherium/AitherZero) | a pile of scripts nobody has numbered | numbered, discoverable automation with declarative playbooks |
+| [AitherConnect](https://github.com/Aitherium/AitherConnect) | what a page tells your browser to do | a federated search and desktop bridge you host |
+
+[**awnix**](https://github.com/Aitherium/awnix) is the ground floor — A Linux you can hand to an agent — immutable base, capabilities included.
+
+## The Aitherium ecosystem
+
+Every repository here is public. Each publishes an `aither-manifest.json` beside its page, so any surface can read every sibling's — the network is browsable from any node in it.
+
+| repo | what it is | pages |
+|---|---|---|
+| [awdk](https://github.com/Aitherium/awdk) | Build AI agent fleets — 3 lines, any backend, local or cloud | [docs](https://aitherium.github.io/awdk/) |
+| [awskills](https://github.com/Aitherium/awskills) | Portable agent skills — self-contained procedures an agent loads on demand | [docs](https://aitherium.github.io/awskills/) |
+| [awm](https://github.com/Aitherium/awm) | A portable, scoped agent memory | [docs](https://aitherium.github.io/awm/) |
+| [awnode](https://github.com/Aitherium/awnode) | A lightweight local gateway — bridges your apps to the AI backends you chose | [docs](https://aitherium.github.io/awnode/) |
+| [awrun](https://github.com/Aitherium/awrun) | A priority-aware queue and dispatcher for agentic runs and ad-hoc CI builds | [docs](https://aitherium.github.io/awrun/) |
+| [awgraph](https://github.com/Aitherium/awgraph) | A semantic code graph for agents — AST + tree-sitter, call graphs | [docs](https://aitherium.github.io/awgraph/) |
+| [awgit](https://github.com/Aitherium/awgit) | Semantic version control on top of git — edit-ops and leases | [docs](https://aitherium.github.io/awgit/) |
+| [awseal](https://github.com/Aitherium/awseal) | Sign an artifact so a stranger can verify it | [docs](https://aitherium.github.io/awseal/) |
+| [awshare](https://github.com/Aitherium/awshare) | Publish an artifact and fetch it back verified | [docs](https://aitherium.github.io/awshare/) |
+| [awnest](https://github.com/Aitherium/awnest) | Prove there is a human before you let them into the nest | [docs](https://aitherium.github.io/awnest/) |
+| [awnboard](https://github.com/Aitherium/awnboard) | A front gate you can put in front of anything, and hand someone the key to | [docs](https://aitherium.github.io/awnboard/) |
+| [awnix](https://github.com/Aitherium/awnix) | A Linux you can hand to an agent — immutable base, capabilities included | [docs](https://aitherium.github.io/awnix/) |
+| [awrecover](https://github.com/Aitherium/awrecover) | Labelled snapshots with an all-or-nothing restore | [docs](https://aitherium.github.io/awrecover/) |
+| [awrelay](https://github.com/Aitherium/awrelay) | Portable agent messaging — findings, alerts, coordination | [docs](https://aitherium.github.io/awrelay/) |
+| [awmail](https://github.com/Aitherium/awmail) | Give an agent an email address — send, and actually receive | [docs](https://aitherium.github.io/awmail/) |
+| [awfind](https://github.com/Aitherium/awfind) | A portable search client — query, results, ranking | [docs](https://aitherium.github.io/awfind/) |
+| [awbrowse](https://github.com/Aitherium/awbrowse) | A portable browser client — navigate, console, network, DOM, screenshot | [docs](https://aitherium.github.io/awbrowse/) |
+| **awreason** _(you are here)_ | A portable reasoning client — sessions, phases, thoughts, chain-of-thought | [docs](https://aitherium.github.io/awreason/) |
+| [aitherkvcache](https://github.com/Aitherium/aitherkvcache) | Near-optimal KV cache quantization for LLM inference — sub-byte compression | [docs](https://aitherium.github.io/aitherkvcache/) |
+| [AitherZero](https://github.com/Aitherium/AitherZero) | PowerShell 7+ automation framework — numbered, self-describing scripts | [docs](https://aitherium.github.io/AitherZero/) |
+| [AitherConnect](https://github.com/Aitherium/AitherConnect) | Browser extension — federated AI search, page context, and the Living OS overlay | [docs](https://aitherium.github.io/AitherConnect/) |
+
+<!-- aither-ecosystem:end -->
