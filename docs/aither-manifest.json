@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1",
+  "name": "awreason",
+  "description": "A portable reasoning client — sessions, phases, thoughts, and the chain that produced the answer.",
+  "url": "https://aitherium.github.io/awreason/",
+  "repository": "https://github.com/Aitherium/awreason",
+  "kind": "tool",
+  "status": "public",
+  "adopt": "Run one hard question as a session you can open up afterwards — the phases, the thoughts, the tool calls — instead of a paragraph you have to take on faith.",
+  "pairs_with": [
+    "awdk",
+    "awfind",
+    "awbrowse",
+    "awm"
+  ],
+  "includes": [],
+  "metrics": {
+    "files": {
+      "value": 13,
+      "as_of": "2026-08-22T18:47:19-07:00"
+    },
+    "tests": {
+      "value": 1,
+      "as_of": "2026-08-22T18:47:19-07:00"
+    }
+  }
+}
