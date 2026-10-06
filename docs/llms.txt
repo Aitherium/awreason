@@ -1,0 +1,36 @@
+# awreason
+
+> A portable reasoning client — sessions, phases, thoughts, and the chain that produced the answer.
+
+An agent that reasoned well and an agent that reasoned badly return the same shape: one paragraph. So a wrong answer is indistinguishable from a right one until it has been acted on, and the only available debugging tool is asking again. The structure exists inside the model turn and is discarded at the boundary, which is why nothing downstream can ever check it.
+
+## Install
+
+```
+pip install awreason
+```
+
+## In Claude Code
+
+- skill: `/awreason`
+
+## Use it in 30 seconds
+
+Run one hard question as a session you can open up afterwards — the phases, the thoughts, the tool calls — instead of a paragraph you have to take on faith.
+
+## Composes with
+
+- [awdk](https://aitherium.github.io/awdk/) — Build AI agent fleets — 3 lines, any backend, local or cloud.
+- [awfind](https://aitherium.github.io/awfind/) — A portable search client — query, results, ranking.
+- [awbrowse](https://aitherium.github.io/awbrowse/) — A portable browser client — navigate, console, network, DOM, screenshot.
+- [awm](https://aitherium.github.io/awm/) — A portable, scoped agent memory.
+
+## Where it lives
+
+- Repo: https://github.com/Aitherium/awreason
+- Docs: https://aitherium.github.io/awreason/
+- Manifest (keys + the one-line adoption story): https://aitherium.github.io/awreason/aither-manifest.json
+
+This repository is mirrored from the AitherOS monorepo by `.github/workflows/sync-awreason.yml`; hand edits made here are overwritten on the next sync — change the source instead.
+
+Everything Aitherium, in one file for agents: https://aitherium.com/llms.txt
