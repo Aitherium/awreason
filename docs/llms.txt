@@ -10,6 +10,10 @@ An agent that reasoned well and an agent that reasoned badly return the same sha
 pip install awreason
 ```
 
+## In Claude Code
+
+- skill: `/awreason`
+
 ## Use it in 30 seconds
 
 Run one hard question as a session you can open up afterwards — the phases, the thoughts, the tool calls — instead of a paragraph you have to take on faith.
